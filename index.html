@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>status log</title>
+<style>
+:root{
+  --black:#050505;
+  --panel:#111;
+  --panel2:#181818;
+  --white:#fff;
+  --yellow:#ffd84d;
+  --mustard:#c99a24;
+  --mustardDark:#8f6814;
+  --border:#4b3a16;
+  --muted:#cfcfcf;
+  --green:#8aff9d;
+  --danger:#7a1f1f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--black);
+  color:var(--white);
+  font-family:"Century Gothic",Arial,sans-serif;
+}
+.site-nav{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:10px 16px;
+  background:#0d0d0d;
+  border-bottom:1px solid var(--border);
+}
+.site-nav a{
+  padding:7px 10px;
+  border-radius:6px;
+  color:var(--white);
+  text-decoration:none;
+  font-size:.9rem;
+}
+.site-nav a:hover{
+  background:#2a2414;
+  color:var(--yellow);
+}
+.site-nav a.active{
+  background:var(--mustardDark);
+  color:var(--white);
+}
+.page{padding:20px}
+.container{
+  max-width:760px;
+  margin:auto;
+  padding:24px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);
+}
+h1{
+  margin:0 0 18px;
+  color:var(--mustard);
+  text-align:center;
+  font-size:2rem;
+}
+h2{
+  margin:0 0 12px;
+  color:var(--yellow);
+  text-align:center;
+  font-size:1.25rem;
+}
+.timer-card,.manual-card,.log-card{
+  padding:16px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.manual-card,.log-card{
+  margin-top:18px;
+}
+.timer-card{text-align:center}
+.timer-display{
+  margin:12px 0 6px;
+  color:var(--mustard);
+  font-size:3rem;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+.timer-subtext{
+  min-height:22px;
+  color:var(--muted);
+  font-size:.9rem;
+}
+.buttons{
+  margin-top:15px;
+  text-align:center;
+}
+button{
+  padding:8px 14px;
+  margin:5px;
+  background:var(--mustardDark);
+  color:var(--white);
+  border:0;
+  border-radius:6px;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:.9rem;
+}
+button:hover{background:var(--mustard)}
+button.danger{background:var(--danger)}
+button.danger:hover{background:#9f2a2a}
+button.small{
+  padding:5px 9px;
+  margin:2px;
+  font-size:.8rem;
+}
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+label{
+  display:block;
+  margin-top:10px;
+  color:var(--yellow);
+  font-weight:600;
+}
+textarea{
+  width:100%;
+  margin-top:6px;
+  padding:10px;
+  min-height:90px;
+  background:#222;
+  color:var(--white);
+  border:1px solid #655522;
+  border-radius:7px;
+  resize:vertical;
+  font-family:inherit;
+  font-size:.95rem;
+}
+.status-line{
+  min-height:22px;
+  margin-top:10px;
+  color:var(--green);
+  text-align:center;
+  font-size:.9rem;
+}
+.log-count{
+  color:var(--muted);
+  text-align:center;
+  font-size:.9rem;
+}
+.table-wrap{
+  margin-top:14px;
+  overflow:auto;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:650px;
+}
+th,td{
+  padding:9px;
+  border-bottom:1px solid #3b3218;
+  text-align:left;
+  vertical-align:top;
+  font-size:.85rem;
+}
+th{
+  background:#211c0d;
+  color:var(--yellow);
+}
+td{
+  background:#121212;
+  color:var(--white);
+}
+td.actions{
+  white-space:nowrap;
+  text-align:center;
+}
+.empty{
+  padding:16px;
+  color:var(--muted);
+  text-align:center;
+}
+@media(max-width:650px){
+  .page{padding:12px}
+  .container{padding:18px}
+  h1{font-size:1.65rem}
+  .timer-display{font-size:2.35rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+<a href="https://drpboop.github.io/home/">home</a>
+<a href="https://drpboop.github.io/crit/">critter</a>
+<a href="https://drpboop.github.io/refill-lookback/">refill lookback</a>
+<a href="https://drpboop.github.io/situational/">situational</a>
+<a class="active" href="https://drpboop.github.io/status-log/">status log</a>
+</nav>
+
+<div class="page">
+<div class="container">
+
+<h1>status log</h1>
+
+<section class="timer-card">
+<h2>timer</h2>
+
+<div id="timerDisplay" class="timer-display">00:00:00</div>
+<div id="timerSubtext" class="timer-subtext">click start when you leave available</div>
+
+<div class="buttons">
+<button id="startButton" onclick="startTimer()">start</button>
+<button id="stopButton" onclick="stopTimer()" disabled>stop</button>
+</div>
+</section>
+
+<section class="manual-card">
+<h2>entry</h2>
+
+<textarea id="infoBox" placeholder="type entry here"></textarea>
+
+<div class="status-line" id="statusMessage"></div>
+</section>
+
+<section class="log-card">
+<h2>log</h2>
+
+<div id="logCount" class="log-count">0 saved entries</div>
+
+<div class="buttons">
+<button class="danger" onclick="clearLog()">clear log</button>
+</div>
+
+<div id="logArea" class="table-wrap">
+<div class="empty">no saved entries</div>
+</div>
+</section>
+
+</div>
+</div>
+
+<script>
+const logKey="simpleStatusLogEntries";
+const timerKey="simpleStatusLogCurrent";
+
+let entries=[];
+let timerInterval=null;
+let startTime=null;
+
+function loadEntries(){
+  try{
+    entries=JSON.parse(localStorage.getItem(logKey))||[];
+  }catch(error){
+    entries=[];
+  }
+}
+
+function saveEntries(){
+  localStorage.setItem(logKey,JSON.stringify(entries));
+}
+
+function saveCurrent(){
+  localStorage.setItem(timerKey,JSON.stringify({
+    startTime:startTime?startTime.toISOString():null,
+    info:document.getElementById("infoBox").value
+  }));
+}
+
+function loadCurrent(){
+  try{
+    const current=JSON.parse(localStorage.getItem(timerKey));
+    if(!current)return;
+
+    document.getElementById("infoBox").value=current.info||"";
+
+    if(current.startTime){
+      startTime=new Date(current.startTime);
+      setRunning(true);
+      startInterval();
+      document.getElementById("timerSubtext").textContent="timer is running";
+    }
+  }catch(error){
+    localStorage.removeItem(timerKey);
+  }
+}
+
+function formatTime(date){
+  return date.toLocaleTimeString("en-US",{
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit"
+  }).toLowerCase();
+}
+
+function formatDate(date){
+  return String(date.getMonth()+1).padStart(2,"0")+"/"+
+         String(date.getDate()).padStart(2,"0")+"/"+
+         date.getFullYear();
+}
+
+function formatDuration(ms){
+  const total=Math.max(0,Math.floor(ms/1000));
+  const hours=Math.floor(total/3600);
+  const minutes=Math.floor((total%3600)/60);
+  const seconds=total%60;
+
+  return String(hours).padStart(2,"0")+":"+
+         String(minutes).padStart(2,"0")+":"+
+         String(seconds).padStart(2,"0");
+}
+
+function setRunning(isRunning){
+  document.getElementById("startButton").disabled=isRunning;
+  document.getElementById("stopButton").disabled=!isRunning;
+}
+
+function startInterval(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(updateTimer,1000);
+  updateTimer();
+}
+
+function updateTimer(){
+  if(!startTime){
+    document.getElementById("timerDisplay").textContent="00:00:00";
+    return;
+  }
+
+  document.getElementById("timerDisplay").textContent=
+    formatDuration(new Date()-startTime);
+}
+
+function startTimer(){
+  if(startTime)return;
+
+  startTime=new Date();
+  setRunning(true);
+  startInterval();
+
+  document.getElementById("timerSubtext").textContent="timer is running";
+  showStatus("started");
+
+  saveCurrent();
+}
+
+function stopTimer(){
+  if(!startTime)return;
+
+  const endTime=new Date();
+  const info=document.getElementById("infoBox").value.trim();
+
+  const entry={
+    id:Date.now().toString()+Math.random().toString(16).slice(2),
+    date:formatDate(startTime),
+    start:formatTime(startTime),
+    end:formatTime(endTime),
+    total:formatDuration(endTime-startTime),
+    info:info
+  };
+
+  entries.unshift(entry);
+  saveEntries();
+
+  clearInterval(timerInterval);
+  timerInterval=null;
+  startTime=null;
+
+  setRunning(false);
+  document.getElementById("timerDisplay").textContent="00:00:00";
+  document.getElementById("timerSubtext").textContent="entry saved";
+  document.getElementById("infoBox").value="";
+
+  localStorage.removeItem(timerKey);
+
+  renderLog();
+  showStatus("saved");
+}
+
+function renderLog(){
+  document.getElementById("logCount").textContent=
+    entries.length===1?"1 saved entry":entries.length+" saved entries";
+
+  const area=document.getElementById("logArea");
+
+  if(!entries.length){
+    area.innerHTML='<div class="empty">no saved entries</div>';
+    return;
+  }
+
+  const rows=entries.map(entry=>{
+    return `
+      <tr>
+        <td>${escapeHTML(entry.date)}</td>
+        <td>${escapeHTML(entry.start)}</td>
+        <td>${escapeHTML(entry.end)}</td>
+        <td>${escapeHTML(entry.total)}</td>
+        <td>${escapeHTML(entry.info||"")}</td>
+        <td class="actions">
+          <button class="small" onclick="editEntry('${entry.id}')">✎</button>
+          <button class="small danger" onclick="deleteEntry('${entry.id}')">delete</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  area.innerHTML=`
+    <table>
+      <thead>
+        <tr>
+          <th>date</th>
+          <th>start</th>
+          <th>end</th>
+          <th>total</th>
+          <th>entry</th>
+          <th>actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function editEntry(id){
+  const entry=entries.find(item=>item.id===id);
+  if(!entry)return;
+
+  const updatedInfo=prompt("edit manual entry",entry.info||"");
+
+  if(updatedInfo===null)return;
+
+  entry.info=updatedInfo.trim();
+
+  saveEntries();
+  renderLog();
+  showStatus("entry updated");
+}
+
+function deleteEntry(id){
+  if(!confirm("delete this entry?"))return;
+
+  entries=entries.filter(item=>item.id!==id);
+
+  saveEntries();
+  renderLog();
+  showStatus("entry deleted");
+}
+
+function clearLog(){
+  if(!entries.length){
+    alert("there are no saved entries.");
+    return;
+  }
+
+  if(!confirm("clear entire log?"))return;
+
+  entries=[];
+  localStorage.removeItem(logKey);
+  renderLog();
+  showStatus("log cleared");
+}
+
+function escapeHTML(value){
+  const div=document.createElement("div");
+  div.textContent=value||"";
+  return div.innerHTML;
+}
+
+function showStatus(message){
+  const status=document.getElementById("statusMessage");
+  status.textContent=message;
+
+  setTimeout(()=>{
+    status.textContent="";
+  },2500);
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+  loadEntries();
+  renderLog();
+  loadCurrent();
+
+  document.getElementById("infoBox").addEventListener("input",saveCurrent);
+});
+</script>
+
+</body>
+</html>
